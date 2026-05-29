@@ -19,12 +19,14 @@ opc content "文章主题" \
 Then run the gated workflow:
 
 ```bash
-opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki
+opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki --execute-skill
 opc approve <task-id> outline_review
-opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki
+opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki --execute-skill
 opc approve <task-id> final_review
+opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki --execute-skill
 opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki
 opc approve <task-id> publish_review
+opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki --execute-skill
 opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki
 opc publish <task-id> --channel feishu
 opc memory sync <task-id> --memory-root /Users/jerry/Documents/knowledge/team-knowledge/opc-memory
@@ -78,6 +80,10 @@ Use skills and the model for semantic work:
 Subskills write into the task artifact directory created by `opc-router`:
 
 ```text
+stage-packet.json
+stage-instructions.md
+skill-execution-request.json
+skill-handoff.md
 01-evidence-pack.md
 02-outline.md
 03-review-checklist.md

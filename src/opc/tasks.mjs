@@ -24,8 +24,8 @@ export const retryTask = ({ root = defaultWorkspaceRoot(), id, reason = '' }) =>
 export const getTaskEvents = ({ root = defaultWorkspaceRoot(), id }) =>
   new OpcController({ root }).getTaskEvents(id);
 
-export const runTask = ({ root = defaultWorkspaceRoot(), id, wikiRoot }) =>
-  new OpcController({ root }).runTask(id, { wikiRoot });
+export const runTask = ({ root = defaultWorkspaceRoot(), id, wikiRoot, executeSkill = false }) =>
+  new OpcController({ root }).runTask(id, { wikiRoot, executeSkill });
 
 export const publishTask = ({ root = defaultWorkspaceRoot(), id, channel, execute = false }) =>
   new OpcController({ root }).publishTask({ id, channel, execute });

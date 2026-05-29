@@ -11,16 +11,16 @@ This skill does not replace the specialist skills. It defines the team protocol 
 
 ## Skill Pack Layout
 
-This directory follows the `obsidian-wiki/.skills/` pattern: the root skill is the orchestrator, and focused subskills own the semantic work.
+This package follows the `obsidian-wiki/.skills/` pattern while keeping reusable skills in `/Users/jerry/Documents/projects/the-way-to-opc/skill`. The project skill is the orchestrator, and focused skills own the semantic work.
 
 | Stage | Subskill |
 | --- | --- |
-| Research and evidence | `.skills/content-research` |
-| Thesis, angle, and outline | `.skills/content-planning` |
-| Drafting and editing | `.skills/content-drafting` |
-| Channel packaging and publishing handoff | `.skills/content-publishing` |
-| Memory sync and lesson export | `.skills/content-memory` |
-| Lesson clustering and skill patch proposals | `.skills/skill-evolution` |
+| Research and evidence | `skill/content-research` |
+| Thesis, angle, and outline | `skill/content-planning` |
+| Drafting and editing | `skill/content-drafting` |
+| Channel packaging and publishing handoff | `skill/content-publishing` |
+| Memory sync and lesson export | `skill/content-memory` |
+| Lesson clustering and skill patch proposals | `skill/skill-evolution` |
 
 Use `SETUP.md` when installing, linking, or explaining this skill pack to another agent runtime.
 
@@ -45,12 +45,12 @@ Use these existing skills instead of duplicating their domain logic:
 
 | Need | Reuse |
 | --- | --- |
-| Multi-agent handoff and quality gates | `/Users/jerry/Documents/projects/the-way-to-opc/.skills/agent-team-orchestration` |
-| Team workspace and role materialization | `/Users/jerry/Documents/projects/the-way-to-opc/.skills/multi-agent-builder` |
+| Multi-agent handoff and quality gates | `/Users/jerry/Documents/projects/the-way-to-opc/skill/agent-team-orchestration` |
+| Team workspace and role materialization | `/Users/jerry/Documents/projects/the-way-to-opc/skill/multi-agent-builder` |
 | Local wiki setup, query, ingest, lint, and maintenance | `/Users/jerry/Documents/projects/the-way-to-the-ai-engineer/skills/obsidian-llm-wiki` |
-| Evidence-backed topic research | `.skills/content-research` |
-| Obsidian Markdown drafting | `.skills/content-drafting` |
-| Feishu/Lark, Yuque, IMA-ready, or generic Markdown publishing | `.skills/content-publishing` |
+| Evidence-backed topic research | `/Users/jerry/Documents/projects/the-way-to-opc/skill/content-research` |
+| Obsidian Markdown drafting | `/Users/jerry/Documents/projects/the-way-to-opc/skill/content-drafting` |
+| Feishu/Lark, Yuque, IMA-ready, or generic Markdown publishing | `/Users/jerry/Documents/projects/the-way-to-opc/skill/content-publishing` |
 | IMA/WeChat candidate intake into local wiki | `/Users/jerry/Documents/projects/the-way-to-the-ai-engineer/skills/ima-wiki-promotion` |
 | Yuque to Obsidian source sync | `/Users/jerry/Documents/projects/the-way-to-the-ai-engineer/skills/yuque-maintainer` |
 
@@ -79,12 +79,14 @@ The current local implementation is deterministic and file-based:
 
 ```bash
 opc content "文章主题"
-opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki
+opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki --execute-skill
 opc approve <task-id> outline_review
-opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki
+opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki --execute-skill
 opc approve <task-id> final_review
+opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki --execute-skill
 opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki
 opc approve <task-id> publish_review
+opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki --execute-skill
 opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki
 opc publish <task-id> --channel feishu
 opc memory sync <task-id> --memory-root /Users/jerry/Documents/knowledge/team-knowledge/opc-memory
@@ -93,6 +95,10 @@ opc memory sync <task-id> --memory-root /Users/jerry/Documents/knowledge/team-kn
 Current P2-E artifacts live under the content team shared task directory:
 
 ```text
+stage-packet.json
+stage-instructions.md
+skill-execution-request.json
+skill-handoff.md
 01-evidence-pack.md
 02-outline.md
 03-review-checklist.md

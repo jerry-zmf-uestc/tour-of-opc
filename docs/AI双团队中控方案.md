@@ -42,12 +42,12 @@ opc-router 统一中控
 | 类型 | 路径 | 用途 |
 | --- | --- | --- |
 | 研发方案初稿 | `/Users/jerry/Documents/projects/the-way-to-opc/docs/OpenClaw-BMAD-多Agent研发流水线技术方案.md` | Team A 的 BMAD 流程、角色、工件契约和质量门禁底稿 |
-| 团队编排 skill | `/Users/jerry/Documents/projects/the-way-to-opc/.skills/agent-team-orchestration` | 多 Agent 团队的角色、生命周期、handoff、review 协议 |
-| 团队创建 skill | `/Users/jerry/Documents/projects/the-way-to-opc/.skills/multi-agent-builder` | OpenClaw 团队创建、workspace、角色文档、权限 profile |
-| 内容团队编排 skill | `/Users/jerry/Documents/projects/the-way-to-opc/.skills/openclaw-content-team` | Team B 的角色、阶段门禁、工件契约、复盘和既有内容 skill 复用协议 |
-| 内容研究子技能 | `/Users/jerry/Documents/projects/the-way-to-opc/.skills/openclaw-content-team/.skills/content-research` | 基于 Obsidian / LLM Wiki 的 evidence pack 和 research brief |
-| 内容起草子技能 | `/Users/jerry/Documents/projects/the-way-to-opc/.skills/openclaw-content-team/.skills/content-drafting` | 从 brief / outline 生成 Obsidian Markdown 初稿和终稿 |
-| 多渠道发布子技能 | `/Users/jerry/Documents/projects/the-way-to-opc/.skills/openclaw-content-team/.skills/content-publishing` | 将 reviewed draft 适配为飞书、公众号等渠道草稿和发布 handoff |
+| 团队编排 skill | `/Users/jerry/Documents/projects/the-way-to-opc/skill/agent-team-orchestration` | 多 Agent 团队的角色、生命周期、handoff、review 协议 |
+| 团队创建 skill | `/Users/jerry/Documents/projects/the-way-to-opc/skill/multi-agent-builder` | OpenClaw 团队创建、workspace、角色文档、权限 profile |
+| 内容团队项目包 | `/Users/jerry/Documents/projects/the-way-to-opc/projects/content-marketing-team` | Team B 的角色、阶段门禁、工件契约、复盘、runtime 绑定和既有内容 skill 复用协议 |
+| 内容研究技能 | `/Users/jerry/Documents/projects/the-way-to-opc/skill/content-research` | 基于 Obsidian / LLM Wiki 的 evidence pack 和 research brief |
+| 内容起草技能 | `/Users/jerry/Documents/projects/the-way-to-opc/skill/content-drafting` | 从 brief / outline 生成 Obsidian Markdown 初稿和终稿 |
+| 多渠道发布技能 | `/Users/jerry/Documents/projects/the-way-to-opc/skill/content-publishing` | 将 reviewed draft 适配为飞书、公众号等渠道草稿和发布 handoff |
 | Obsidian 知识库能力 | `obsidian-llm-wiki`、`wiki-query`、`wiki-ingest`、`wiki-lint` 等 | 知识检索、摄入、校验、维护和复盘沉淀 |
 | 飞书能力 | `lark-doc`、`lark-drive`、`lark-wiki`、`lark-markdown` 等 | 飞书文档、知识库、文件和 Markdown 发布 |
 
@@ -599,7 +599,7 @@ candidate_rules:
 promotion:
   status: proposed
   target:
-    - openclaw-content-team/.skills/content-research/SKILL.md
+    - skill/content-research/SKILL.md
     - content-team/MEMORY.md
 ```
 
@@ -669,8 +669,8 @@ github:gh-address-comments
 Team A 当前可先复用：
 
 ```text
-/Users/jerry/Documents/projects/the-way-to-opc/.skills/agent-team-orchestration
-/Users/jerry/Documents/projects/the-way-to-opc/.skills/multi-agent-builder
+/Users/jerry/Documents/projects/the-way-to-opc/skill/agent-team-orchestration
+/Users/jerry/Documents/projects/the-way-to-opc/skill/multi-agent-builder
 /Users/jerry/Documents/projects/the-way-to-opc/docs/OpenClaw-BMAD-多Agent研发流水线技术方案.md
 ```
 
@@ -699,15 +699,17 @@ lark-markdown
 
 Team B 当前采用“编排 skill + 专业 skill”结构：
 
-- `openclaw-content-team` 负责团队角色、阶段门禁、handoff、工件契约、复盘和 lessons。
-- `.skills/content-research`、`.skills/content-drafting`、`.skills/content-publishing` 分别负责研究、起草和渠道发布。
+- `projects/content-marketing-team` 是内容团队项目包，负责团队角色、阶段门禁、handoff、工件契约、复盘、runtime 绑定和 lessons。
+- `skill/content-research`、`skill/content-planning`、`skill/content-drafting`、`skill/content-publishing`、`skill/content-memory`、`skill/skill-evolution` 分别负责可复用的专业能力。
+- `projects/content-marketing-team/.codex/skills`、`.claude/skills`、`.openclaw/skills`、`.trae/skills` 通过链接暴露这些通用 skill，便于 Codex、Claude、OpenClaw、Trae 等 runtime 使用。
 - `opc-router` 仍拥有任务状态、审批和 completed 写入权，skill 不绕过中控直接发布或完成任务。
 
-`openclaw-content-team` 已拆成可渐进加载结构：
+内容团队项目包已拆成可渐进加载结构：
 
 ```text
-.skills/openclaw-content-team/
+projects/content-marketing-team/
 ├── SKILL.md
+├── SETUP.md
 ├── references/
 │   ├── workflow.md
 │   ├── artifact-contract.md
@@ -716,6 +718,17 @@ Team B 当前采用“编排 skill + 专业 skill”结构：
 └── assets/templates/
     ├── publish-plan.md
     └── publish-log.md
+```
+
+通用专业 skill 位于：
+
+```text
+skill/content-research/
+skill/content-planning/
+skill/content-drafting/
+skill/content-publishing/
+skill/content-memory/
+skill/skill-evolution/
 ```
 
 外部社区 skill 只作为候选，不直接进入生产链路。候选 skill 必须经历：
@@ -996,25 +1009,42 @@ opc content "基于 Obsidian 知识库，写一篇关于 AI Agent Harness 的公
   --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki
 ```
 
-当前已落地的本地闭环分四段执行：
+当前已落地的本地闭环采用“中控生成 stage packet / skill handoff，Agent 按 skill 产出工件，中控再推进 gate”的方式执行：
 
 ```bash
 # 1. 创建内容任务
 opc content "基于 Obsidian 知识库，写一篇关于 AI Agent Harness 的公众号文章"
 
-# 2. 召回本地 llm-wiki，生成证据包、大纲和审核清单
-opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki
+# 2. 生成 research 阶段包和 skill handoff
+opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki --execute-skill
+
+# 2.1 Codex / OpenClaw 读取 skill-handoff.md，使用 content-research 写入：
+# 01-evidence-pack.md、02-outline.md、03-review-checklist.md
 
 # 3. 审批大纲后生成初稿和初稿审核
 opc approve <task-id> outline_review
-opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki
+opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki --execute-skill
+
+# 3.1 Agent 使用 content-drafting 写入：
+# 04-draft.md、05-draft-review.md
 
 # 4. 审批终稿后生成 final、retrospective、lessons，写回 Obsidian，并进入 publish_review
 opc approve <task-id> final_review
+opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki --execute-skill
+
+# 4.1 Agent 使用 content-drafting 写入：
+# 06-final.md、07-retrospective.md、08-publish-plan.md、lessons.yaml
+
+# 4.2 中控检查 final 工件后写回 Obsidian，并进入 publish_review
 opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki
 
 # 5. 审批发布准备后生成本地渠道草稿、publish manifest、publisher handoff 和 publish log，并完成本地任务
 opc approve <task-id> publish_review
+opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki --execute-skill
+
+# 5.1 Agent 使用 content-publishing 写入渠道草稿、publish manifest、publisher handoff 和 publish log
+
+# 5.2 中控检查发布工件后完成本地任务
 opc run <task-id> --wiki-root /Users/jerry/Documents/knowledge/team-knowledge/opc-wiki
 
 # 6. 发布 dry-run 就绪检查，不产生外部副作用
@@ -1028,6 +1058,10 @@ opc memory sync <task-id> --memory-root /Users/jerry/Documents/knowledge/team-kn
 
 ```text
 Team B shared/tasks/<task-id>/
+├── stage-packet.json
+├── stage-instructions.md
+├── skill-execution-request.json
+├── skill-handoff.md
 ├── 01-evidence-pack.md
 ├── 02-outline.md
 ├── 03-review-checklist.md

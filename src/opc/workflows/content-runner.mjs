@@ -1,5 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const DEFAULT_SKILL_ROOT = path.join(REPO_ROOT, 'skill');
 
 export class ContentWorkflowRunner {
   constructor({ store } = {}) {
@@ -25,7 +29,8 @@ export class ContentWorkflowRunner {
         inputs: ['task.json'],
         expectedOutputs: ['01-evidence-pack.md', '02-outline.md', '03-review-checklist.md'],
         llmOwned: ['wiki retrieval judgment', 'evidence synthesis', 'gap analysis'],
-        gateAfter: 'outline_review'
+        gateAfter: 'outline_review',
+        executeSkill: options.executeSkill
       });
     }
 
@@ -47,7 +52,8 @@ export class ContentWorkflowRunner {
         inputs: ['task.json', '01-evidence-pack.md', '02-outline.md', '03-review-checklist.md'],
         expectedOutputs: ['04-draft.md', '05-draft-review.md'],
         llmOwned: ['article drafting', 'editorial review', 'source note preservation'],
-        gateAfter: 'final_review'
+        gateAfter: 'final_review',
+        executeSkill: options.executeSkill
       });
     }
 
@@ -69,7 +75,8 @@ export class ContentWorkflowRunner {
         inputs: ['task.json', '04-draft.md', '05-draft-review.md'],
         expectedOutputs: ['06-final.md', '07-retrospective.md', '08-publish-plan.md', 'lessons.yaml'],
         llmOwned: ['final packaging', 'retrospective interpretation', 'task-specific lesson extraction'],
-        gateAfter: 'publish_review'
+        gateAfter: 'publish_review',
+        executeSkill: options.executeSkill
       });
     }
 
@@ -114,7 +121,8 @@ export class ContentWorkflowRunner {
         inputs: ['task.json', '06-final.md', '08-publish-plan.md'],
         expectedOutputs: publishOutputsFor(withFinal),
         llmOwned: ['channel adaptation', 'publisher handoff quality', 'publish manifest preparation'],
-        gateAfter: null
+        gateAfter: null,
+        executeSkill: options.executeSkill
       });
     }
 
@@ -198,7 +206,7 @@ const refreshArtifacts = (task) => {
   return { ...task, artifacts };
 };
 
-const writeStagePacket = ({ task, store, stage, subskill, inputs, expectedOutputs, llmOwned, gateAfter }) => {
+const writeStagePacket = ({ task, store, stage, subskill, inputs, expectedOutputs, llmOwned, gateAfter, executeSkill = false }) => {
   const packetPath = artifactPath(task, 'stage-packet.json');
   const instructionsPath = artifactPath(task, 'stage-instructions.md');
   const packet = {
@@ -237,6 +245,57 @@ const writeStagePacket = ({ task, store, stage, subskill, inputs, expectedOutput
     message: `Created ${stage} stage packet for ${subskill}`,
     metadata: { stage, subskill, artifact: 'stage-packet.json' }
   });
+  if (!executeSkill) {
+    return updated;
+  }
+  return writeSkillHandoff({ task: updated, store, packet });
+};
+
+const writeSkillHandoff = ({ task, store, packet, skillRoot = DEFAULT_SKILL_ROOT }) => {
+  const skillFile = path.join(skillRoot, packet.subskill, 'SKILL.md');
+  if (!fs.existsSync(skillFile)) {
+    throw new Error(`Skill not found for ${packet.subskill}: ${skillFile}`);
+  }
+
+  const requestPath = artifactPath(task, 'skill-execution-request.json');
+  const handoffPath = artifactPath(task, 'skill-handoff.md');
+  const request = {
+    version: 1,
+    status: 'ready_for_agent_execution',
+    task_id: packet.task_id,
+    title: packet.title,
+    team: packet.team,
+    stage: packet.stage,
+    subskill: packet.subskill,
+    skill_file: skillFile,
+    artifact_root: packet.artifact_root,
+    stage_packet: artifactPath(task, 'stage-packet.json'),
+    stage_instructions: artifactPath(task, 'stage-instructions.md'),
+    inputs: packet.inputs.map((input) => artifactPath(task, input)),
+    expected_outputs: packet.expected_outputs,
+    gate_after: packet.gate_after,
+    router_owned: packet.router_owned,
+    llm_owned: packet.llm_owned
+  };
+
+  fs.writeFileSync(requestPath, `${JSON.stringify(request, null, 2)}\n`);
+  fs.writeFileSync(handoffPath, renderSkillHandoff(request));
+
+  const updated = {
+    ...task,
+    artifacts: {
+      ...(task.artifacts || {}),
+      skill_handoff: handoffPath,
+      skill_execution_request: requestPath
+    }
+  };
+  store.saveTask(updated);
+  store.recordEvent({
+    task: updated,
+    event_type: 'skill_execution_requested',
+    message: `Prepared ${packet.subskill} skill handoff for ${packet.stage}`,
+    metadata: { stage: packet.stage, subskill: packet.subskill, artifact: 'skill-handoff.md' }
+  });
   return updated;
 };
 
@@ -268,6 +327,45 @@ ${packet.expected_outputs.map((output) => `- ${output}`).join('\n')}
 - LLM-owned: ${packet.llm_owned.join(', ')}
 
 Write expected outputs into the artifact root, then rerun \`opc run ${packet.task_id}\`.
+`;
+
+const renderSkillHandoff = (request) => `# Skill Execution Handoff
+
+## Task
+
+${request.title}
+
+## Stage
+
+${request.stage}
+
+## Subskill
+
+${request.subskill}
+
+## Skill File
+
+${request.skill_file}
+
+## Stage Packet
+
+${request.stage_packet}
+
+## Inputs
+
+${request.inputs.map((input) => `- ${input}`).join('\n')}
+
+## Expected Outputs
+
+${request.expected_outputs.map((output) => `- ${path.join(request.artifact_root, output)}`).join('\n')}
+
+## Execution Contract
+
+1. Read \`stage-packet.json\` and this handoff before writing artifacts.
+2. Use the listed skill as the primary instruction source.
+3. Write only the expected outputs into the artifact root unless the skill contract explicitly requires another local artifact.
+4. Do not approve gates, complete the task, publish externally, or mutate router state.
+5. After writing outputs, rerun \`opc run ${request.task_id}\`.
 `;
 
 const requireGate = ({ task, store, gate, message }) => {

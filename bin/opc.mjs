@@ -16,7 +16,7 @@ const usage = () => `Usage:
   opc approve <task-id> <gate> [--root <path>]
   opc retry <task-id> [--reason <reason>] [--root <path>]
   opc events <task-id> [--root <path>]
-  opc run <task-id> [--wiki-root <path>] [--root <path>]
+  opc run <task-id> [--wiki-root <path>] [--execute-skill] [--root <path>]
   opc publish <task-id> [--channel <name>] [--execute] [--root <path>]
   opc memory sync <task-id> [--memory-root <path>] [--root <path>]
 `;
@@ -46,6 +46,7 @@ const channelInput = takeOption('--channel') || takeOption('--channels');
 const publishDestinationInput = takeOption('--publish-destination') || takeOption('--publish-destinations');
 const memoryRoot = takeOption('--memory-root') || process.env.OPC_MEMORY_ROOT;
 const executePublish = takeFlag('--execute');
+const executeSkill = takeFlag('--execute-skill');
 const command = args.shift();
 const controller = new OpcController({ root });
 
@@ -121,7 +122,7 @@ try {
 
   if (command === 'run') {
     const id = args[0];
-    const task = controller.runTask(id, { wikiRoot });
+    const task = controller.runTask(id, { wikiRoot, executeSkill });
     process.stdout.write(`${JSON.stringify(task, null, 2)}\n`);
     process.exit(0);
   }

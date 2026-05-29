@@ -4,29 +4,38 @@
 
 Move semantic content work out of `src/opc` scripts and into skill-based LLM workflows, while keeping `opc-router` as a deterministic control plane.
 
-This follows the `obsidian-wiki/.skills/` pattern: a root skill pack with small subskills, plus a `SETUP.md` explaining how the pack is installed and used.
+This follows the `obsidian-wiki/.skills/` pattern, but the local repository now separates reusable skills from the content-team project package.
 
 ## Current Split
 
-`.skills/openclaw-content-team/` is now organized as:
+Reusable skills are now organized under `skill/`:
 
 ```text
-.skills/openclaw-content-team/
-├── SKILL.md
-├── SETUP.md
-├── .skills/
-│   ├── content-research/
-│   ├── content-planning/
-│   ├── content-drafting/
-│   ├── content-publishing/
-│   ├── content-memory/
-│   └── skill-evolution/
-├── references/
-├── assets/
-└── evals/
+skill/
+├── content-research/
+├── content-planning/
+├── content-drafting/
+├── content-publishing/
+├── content-memory/
+└── skill-evolution/
 ```
 
-The root `SKILL.md` is now the orchestrator. The subskills own stage-specific semantic work.
+The content-team project package is now organized as:
+
+```text
+projects/content-marketing-team/
+├── SKILL.md
+├── SETUP.md
+├── references/
+├── assets/
+├── evals/
+├── .codex/skills/
+├── .claude/skills/
+├── .openclaw/skills/
+└── .trae/skills/
+```
+
+The project `SKILL.md` is the orchestrator. The reusable skills own stage-specific semantic work. Runtime-specific skill directories link back to `skill/` so Codex, Claude, OpenClaw, and Trae can use the same skill contracts.
 
 ## Router-owned
 
@@ -72,12 +81,19 @@ stage-packet.json
 stage-instructions.md
 ```
 
-3. Each `opc run` writes the next stage packet instead of trying to author high-quality semantic artifacts itself.
-4. Codex/OpenClaw reads the packet, triggers the right subskill, and writes artifacts back.
-5. `opc-router` validates artifact presence, gates, and manifests.
-6. Once the skill path is stable, remove or quarantine old template renderers as fallback-only code.
+3. Each plain `opc run` writes the next stage packet instead of trying to author high-quality semantic artifacts itself.
+4. `opc run --execute-skill` additionally writes a concrete handoff:
 
-Current state: stage packet generation has replaced the old semantic template renderers. `content-runner.mjs` no longer owns article writing, wiki query synthesis, channel prose, or lessons prose.
+```text
+skill-execution-request.json
+skill-handoff.md
+```
+
+5. Codex/OpenClaw reads the request, triggers the right skill, and writes artifacts back.
+6. `opc-router` validates artifact presence, gates, and manifests.
+7. Once the skill path is stable, remove or quarantine old template renderers as fallback-only code.
+
+Current state: stage packet generation has replaced the old semantic template renderers. `content-runner.mjs` no longer owns article writing, wiki query synthesis, channel prose, or lessons prose. `--execute-skill` is a minimal deterministic handoff generator; it does not call an LLM by itself.
 
 ## Stage Packet Shape
 

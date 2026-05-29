@@ -176,6 +176,36 @@ test('opc run writes a research stage packet instead of semantic content artifac
   assert.equal(events.at(-1).event_type, 'content_stage_packet_created');
 });
 
+test('opc run with executeSkill writes a concrete skill handoff request', () => {
+  const root = makeRoot('opc-content-');
+  const wikiRoot = makeWiki();
+  const controller = new OpcController({ root });
+  const task = controller.createTask({
+    title: '写一篇关于 Harness 技术原理及应用的文章',
+    type: 'content'
+  });
+
+  const updated = controller.runTask(task.id, { wikiRoot, executeSkill: true });
+
+  assert.equal(updated.required_subskill, 'content-research');
+  assert.ok(fs.existsSync(path.join(task.artifact_root, 'skill-handoff.md')));
+  assert.ok(fs.existsSync(path.join(task.artifact_root, 'skill-execution-request.json')));
+  assert.equal(updated.artifacts.skill_handoff, path.join(task.artifact_root, 'skill-handoff.md'));
+
+  const request = JSON.parse(fs.readFileSync(path.join(task.artifact_root, 'skill-execution-request.json'), 'utf8'));
+  assert.equal(request.subskill, 'content-research');
+  assert.equal(request.status, 'ready_for_agent_execution');
+  assert.equal(request.skill_file, path.resolve('skill/content-research/SKILL.md'));
+  assert.deepEqual(request.expected_outputs, ['01-evidence-pack.md', '02-outline.md', '03-review-checklist.md']);
+
+  const handoff = fs.readFileSync(path.join(task.artifact_root, 'skill-handoff.md'), 'utf8');
+  assert.match(handoff, /content-research/);
+  assert.match(handoff, /stage-packet\.json/);
+
+  const events = controller.getTaskEvents(task.id);
+  assert.equal(events.at(-1).event_type, 'skill_execution_requested');
+});
+
 test('opc run requests outline approval after research artifacts are written by skills', () => {
   const root = makeRoot('opc-content-');
   const wikiRoot = makeWiki();

@@ -130,6 +130,32 @@ test('CLI content task defaults to the team Obsidian wiki vault', () => {
   assert.equal(task.inputs.wiki_root, '/Users/jerry/Documents/knowledge/team-knowledge/opc-wiki');
 });
 
+test('CLI run --execute-skill writes a skill handoff request', () => {
+  const root = makeRoot();
+  const createOutput = execFileSync(process.execPath, [
+    'bin/opc.mjs',
+    'content',
+    '写一篇关于 skill handoff 的飞书文档',
+    '--root',
+    root
+  ], { cwd: path.resolve('.'), encoding: 'utf8', env: { ...process.env, OPC_WIKI_ROOT: '' } });
+  const created = JSON.parse(createOutput);
+
+  const runOutput = execFileSync(process.execPath, [
+    'bin/opc.mjs',
+    'run',
+    created.id,
+    '--execute-skill',
+    '--root',
+    root
+  ], { cwd: path.resolve('.'), encoding: 'utf8', env: { ...process.env, OPC_WIKI_ROOT: '' } });
+  const task = JSON.parse(runOutput);
+
+  assert.equal(task.required_subskill, 'content-research');
+  assert.ok(fs.existsSync(path.join(task.artifact_root, 'skill-handoff.md')));
+  assert.ok(fs.existsSync(path.join(task.artifact_root, 'skill-execution-request.json')));
+});
+
 test('loads task status from the registry', () => {
   const root = makeRoot();
   const task = createTask({ root, title: '开发一个登录页' });
