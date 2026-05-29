@@ -1,0 +1,35 @@
+{
+  "skill_name": "openclaw-content-team",
+  "evals": [
+    {
+      "id": "content-local-loop",
+      "prompt": "基于本地 Obsidian llm-wiki 写一篇关于 Agent Harness 的飞书文档，并保持本地闭环，不要外部发布。",
+      "expected_output": "Uses the openclaw-content-team workflow, produces evidence, outline, draft, final, Obsidian final write-back, local channel drafts, publish log, and stops external publishing."
+    },
+    {
+      "id": "publisher-handoff",
+      "prompt": "这篇文章已经通过 publish_review，请准备给 content-publishing 的发布移交材料，目标是 Feishu 团队知识库和微信公众号手动草稿。",
+      "expected_output": "Creates or references publish-manifest.json and 12-publisher-handoff.md, lists local channel drafts and destinations, and states that external publishing still requires verified credentials and destination."
+    },
+    {
+      "id": "publish-dry-run",
+      "prompt": "对已经完成 publish_review 的内容任务执行 Feishu 发布前检查，但不要真的发布。",
+      "expected_output": "Runs or instructs `opc publish <task-id> --channel feishu`, creates 13-publish-readiness-report.md, and keeps external_publish_attempted false."
+    },
+    {
+      "id": "route-back-dev-work",
+      "prompt": "帮我开发一个文章编辑器 Web App，并顺便写发布说明。",
+      "expected_output": "Identifies this as hybrid or Team A first, not a pure content task; asks opc-router to route implementation before content packaging."
+    },
+    {
+      "id": "research-subskill-recall-gap",
+      "prompt": "内容任务的 evidence pack 漏掉了 hermes-skills-closed-loop，请用内容团队 research 子技能补强证据包。",
+      "expected_output": "Uses content-research, expands semantic query terms, records missed-related-pages, updates 01-evidence-pack.md, and does not approve outline_review."
+    },
+    {
+      "id": "skill-evolution-proposal",
+      "prompt": "连续两次内容任务都出现召回漏掉强相关页面的问题，请整理 skill patch proposal。",
+      "expected_output": "Uses skill-evolution, clusters lessons, proposes changes to research ranking or evals, and requires review/tests before mutating SKILL.md."
+    }
+  ]
+}
